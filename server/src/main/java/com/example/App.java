@@ -9,7 +9,7 @@ public class App {
         try {
             System.out.println("Server started and waiting for connections...");
             ServerSocket server = new ServerSocket(3000);
-System.out.println(System.getProperty("user.dir"));
+            System.out.println(System.getProperty("user.dir"));
             while (true) {
                 Socket client = server.accept();
 
@@ -20,7 +20,6 @@ System.out.println(System.getProperty("user.dir"));
                 message = in.readLine();
                 String[] messages = message.split(" ");
                 String path = messages[1].substring(1);
-                
 
                 while (!message.isEmpty()) {
                     message = in.readLine();
@@ -29,15 +28,17 @@ System.out.println(System.getProperty("user.dir"));
 
                 File file = new File(path);
 
-                out.writeBytes("\n");
                 if (file.exists()) {
                     System.out.println("the file exists");
-
                     sendBinaryFile(file, out);
                 } else {
-                    System.out.println("the file doesn't exist");
+                    message = "file not found";
+                    System.out.println(message);
                     out.writeBytes("HTTP/1.1 404 NOT FOUND\n");
-                    out.writeBytes("Content-length: " + message.length() +"\n");
+                    out.writeBytes("Content-length: " + message.length() + "\n");
+                    out.writeBytes("Content-type: text/plain\n");
+                    out.writeBytes("\n");
+                    out.writeBytes(message + "\n");
                 }
 
                 in.close();
@@ -53,11 +54,12 @@ System.out.println(System.getProperty("user.dir"));
     public static void sendBinaryFile(File file, DataOutputStream out) {
         try {
             out.writeBytes("HTTP/1.1 200 OK\n");
-            out.writeBytes("Content-length: " + file.length() +"\n");
-            out.writeBytes("Content-type: " + getContentType(file) +"\n");
+            out.writeBytes("Content-length: " + file.length() + "\n");
+            out.writeBytes("Content-type: " + getContentType(file) + "\n");
+            out.writeBytes("\n");
 
             String binary = Files.readString(file.toPath());
-            out.writeBytes(binary +"\n");
+            out.writeBytes(binary + "\n");
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -65,11 +67,11 @@ System.out.println(System.getProperty("user.dir"));
 
     }
 
-    public static String getContentType(File file){
+    public static String getContentType(File file) {
         String mime = "application/octet-stream";
-        try{
+        try {
             mime = Files.probeContentType(file.toPath());
-        }catch(Exception e){
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
         return mime;
